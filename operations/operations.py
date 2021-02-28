@@ -3,16 +3,13 @@
 # Importing external dependencies
 # ---------------------------------------------------------------------
 import numpy as np
-import granular.dataloading as ssio
+import numpy.linalg as LA
 import granular.operations as op
 # ---------------------------------------------------------------------
-def getRotationAxis(R):
-    axis = np.zeros((len(R[:,0]),3))
-    axis[:,0]  = 0.5 * (R[:,7] - R[:,5])
-    axis[:,1]  = 0.5 * (R[:,2] - R[:,6])
-    axis[:,2]  = 0.5 * (R[:,3] - R[:,1])
-    return axis
 
+
+
+# Returns a rotation matrix between 2 coordinate systems
 def getRotationMatrix(p0,p1):
     
     R = np.zeros((len(p0[:,0]),9))
@@ -34,14 +31,6 @@ def getRotationMatrix(p0,p1):
 
     return R 
 
-def norm(A):
-    Amag  = np.sqrt(np.sum(A*A,axis=1))
-    Anorm = np.zeros(A.shape)
-    Anorm[:,0] = A[:,0] / Amag
-    Anorm[:,1] = A[:,1] / Amag
-    Anorm[:,2] = A[:,2] / Amag
-    return Anorm
-
 
 def vectorRotate(R,d):
     Rd = np.zeros(d.shape)
@@ -59,6 +48,7 @@ def vectorScale(sc,v):
 
     return vsc
 
+# Not the greatest, but a matrix product
 def matrixProd(A,B,sc=[],tr=1):
 
     AB = np.zeros(A.shape)
@@ -72,7 +62,7 @@ def matrixProd(A,B,sc=[],tr=1):
                 AB[:,i,j] = np.transpose(sc) * np.sum(A[:,i,:]*B[:,:,j],axis=1)
     return AB
 
-
+# Makes a tensor based on a vector
 def mkTensor(v,inv=0):
 
     A = np.zeros((len(v[:,0]),4,4))
@@ -100,6 +90,7 @@ def mkTensor(v,inv=0):
         A[:,3,2]  = v[:,0]
     return A 
 
+# Creates a 3x3 cross product tensor
 def crossProduct(A):
     Ac = np.zeros((len(A[:,0]),3,3))
 
@@ -114,33 +105,25 @@ def crossProduct(A):
 
     return Ac
 
+# Returns outter product (xx^T)
 def outerProduct(A,B):
-    
     AB = np.zeros((len(A[:,0]),3,3))
-
     for i in range(3):
         for j in range(3):
             AB[:,i,j] = A[:,i] * B[:,j]
 
     return AB        
 
-def fromRotationAxis(axis,alpha):
+# Get the rotation axis
+def getRotationAxis(R):
+    axis = np.zeros((len(R[:,0]),3))
+    axis[:,0]  = 0.5 * (R[:,7] - R[:,5])
+    axis[:,1]  = 0.5 * (R[:,2] - R[:,6])
+    axis[:,2]  = 0.5 * (R[:,3] - R[:,1])
     
-    R = np.zeros((len(alpha),9))
-    
-    ca = np.cos(alpha)
-    sa = np.sin(alpha)
+    sintheta = LA.norm(axis,axis=1)
 
-    axis_outer = op.outerProduct(axis,axis)
-    axis_cross = op.crossProduct(axis)
-
-
-
-    for i in range(len(alpha)):
-        R[i,:] = (ca[i] * np.eye(3) + sa[i] * axis_cross[i,:] + (1 - ca[i]) * axis_outer[i,:]).flatten()
-
-    return R    
-
+    return vectorScale(1./sintheta,axis)
 
 # -----------------------------------------------------------------------
 # -----------------------------------------------------------------------
