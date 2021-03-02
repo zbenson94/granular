@@ -12,4 +12,7 @@ import granular.affine
 # ---------------------------------------------------------------------
 import granular.formatting
 
+# Loading is SS files from pkdgrav
+# ---------------------------------------------------------------------
+import granular.dataloading
 
